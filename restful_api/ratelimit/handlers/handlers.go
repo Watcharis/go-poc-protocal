@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"watcharis/go-poc-protocal/restful_api/services"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/services"
 )
 
 type RestFulAPIHandlers interface {

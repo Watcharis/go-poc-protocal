@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"watcharis/go-poc-protocal/pkg"
-	"watcharis/go-poc-protocal/restful_api/models"
+	"watcharis/go-poc-protocal/pkg/logger"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 )
 
 func (h *restFulAPIHandlers) CreateOtp(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Info(ctx, "handler - CreateOtp")
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return

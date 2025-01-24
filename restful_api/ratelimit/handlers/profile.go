@@ -5,17 +5,19 @@ import (
 	"encoding/json"
 	"net/http"
 	"watcharis/go-poc-protocal/pkg"
-	"watcharis/go-poc-protocal/restful_api/models"
+	"watcharis/go-poc-protocal/pkg/logger"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 )
 
-func (h *restFulAPIHandlers) VerifyOtpRatelimit(ctx context.Context) http.HandlerFunc {
+func (h *restFulAPIHandlers) CreateUserProfile(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// if r.Method != http.MethodPost {
-		// 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		// 	return
-		// }
+		logger.Info(ctx, "handler - CreateUserProfile")
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-		var req models.VerifyOtpRatelimitRequest
+		var req models.ProifleRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -26,7 +28,7 @@ func (h *restFulAPIHandlers) VerifyOtpRatelimit(ctx context.Context) http.Handle
 			return
 		}
 
-		result, err := h.services.VerifyOtpRatelimit(ctx, req)
+		result, err := h.services.CreateUserProfile(ctx, req)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

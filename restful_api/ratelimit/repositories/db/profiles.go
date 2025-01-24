@@ -2,8 +2,8 @@ package db
 
 import (
 	"context"
-	"watcharis/go-poc-protocal/restful_api/models"
-	"watcharis/go-poc-protocal/restful_api/repositories"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
 
 	"gorm.io/gorm"
 )

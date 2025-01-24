@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 	"watcharis/go-poc-protocal/pkg/response"
-	"watcharis/go-poc-protocal/restful_api/models"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 )
 
 func (s *services) CreateOtp(ctx context.Context, req models.OtpRequest) (models.OtpResponse, error) {

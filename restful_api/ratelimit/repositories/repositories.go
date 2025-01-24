@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 	"time"
-	"watcharis/go-poc-protocal/restful_api/models"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 )
 
 type RedisRepository interface {

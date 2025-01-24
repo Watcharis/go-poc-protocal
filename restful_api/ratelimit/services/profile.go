@@ -8,7 +8,7 @@ import (
 	"time"
 	"watcharis/go-poc-protocal/pkg"
 	"watcharis/go-poc-protocal/pkg/response"
-	"watcharis/go-poc-protocal/restful_api/models"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 )
 
 func (s *services) CreateUserProfile(ctx context.Context, req models.ProifleRequest) (models.ProifleResponse, error) {

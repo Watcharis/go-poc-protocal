@@ -31,10 +31,10 @@ func ValidateStruct(payload interface{}) error {
 }
 
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	// if r.Method != http.MethodGet {
-	// 	w.WriteHeader(http.StatusMethodNotAllowed)
-	// 	w.Write([]byte("invalid http methods"))
-	// }
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("invalid http methods"))
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("service is running!!"))
 }

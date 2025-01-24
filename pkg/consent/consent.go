@@ -2,7 +2,6 @@ package consent
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -28,5 +27,5 @@ func SetConsent(ctx context.Context, redisClient *redis.Client) {
 		log.Panic(err)
 	}
 
-	fmt.Printf("ok : %v\n", ok)
+	log.Println("set consent to redis success")
 }

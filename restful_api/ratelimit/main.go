@@ -10,13 +10,16 @@ import (
 	"sync"
 	"time"
 	"watcharis/go-poc-protocal/pkg/consent"
-	"watcharis/go-poc-protocal/restful_api/handlers"
-	"watcharis/go-poc-protocal/restful_api/repositories/cache"
-	"watcharis/go-poc-protocal/restful_api/repositories/db"
-	"watcharis/go-poc-protocal/restful_api/router"
-	"watcharis/go-poc-protocal/restful_api/services"
+	"watcharis/go-poc-protocal/pkg/logger"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/handlers"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/cache"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/db"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/router"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/services"
 
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -39,8 +42,27 @@ func main() {
 	fmt.Println("start poc rest api")
 	ctx := context.Background()
 
-	redisClient := initRedis()
-	gormDB := initDatabase()
+	ctx = context.WithValue(ctx, logger.APP_NAME, logger.PROJECT_RATELIMIT)
+
+	tp, err := logger.SetupTracer(ctx, logger.APP_NAME)
+	if err != nil {
+		log.Fatalf("failed to initialize tracer: %v", err)
+	}
+	defer func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Panic(ctx, err.Error())
+		}
+	}()
+
+	tracer := otel.Tracer(logger.APP_NAME)
+	ctx, span := tracer.Start(ctx, logger.PROJECT_RATELIMIT)
+	defer span.End()
+
+	// Create logger with TraceID and SpanID automatically included
+	logger.NewZapWithTracing()
+
+	redisClient := initRedis(ctx)
+	gormDB := initDatabase(ctx)
 
 	consent.SetConsent(ctx, redisClient)
 
@@ -61,10 +83,12 @@ func main() {
 
 	go func(port string) {
 		defer httpServer.Close()
-		log.Printf("Server running on http://localhost%s\n", port)
+		// log.Printf("Server running on http://localhost%s\n", port)
+		logger.Info(ctx, "Server runnig on http://localhost"+port)
 		if err := httpServer.ListenAndServe(); err != nil {
-			log.Println("[error] cannot start server :", err)
-			log.Panic(err)
+			// log.Println("[error] cannot start server :", err)
+			// logger.Error("cannot start server", zap.Error(err))
+			logger.Panic(ctx, "cannot start server", zap.Error(err))
 		}
 	}(httpServer.Addr)
 
@@ -82,7 +106,7 @@ func main() {
 	wg.Wait()
 }
 
-func initRedis() *redis.Client {
+func initRedis(ctx context.Context) *redis.Client {
 	redisAddr := net.JoinHostPort(REDIS_HOST, REDIS_PORT)
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:            redisAddr,
@@ -96,15 +120,16 @@ func initRedis() *redis.Client {
 
 	redisPing, err := redisClient.Ping(context.Background()).Result()
 	if err != nil {
-		log.Panic(err)
+		logger.Panic(ctx, "redis ping failed", zap.Error(err))
 	} else {
-		log.Printf("Redis ping response=%s", redisPing)
+		// log.Printf("Redis ping response=%s", redisPing)
+		logger.Info(ctx, "Redis ping response="+redisPing)
 	}
 
 	return redisClient
 }
 
-func initDatabase() *gorm.DB {
+func initDatabase(ctx context.Context) *gorm.DB {
 	dsn := fmt.Sprintf(
 		"%s:%s@%s/%s?charset=utf8&parseTime=True&loc=Local",
 		GORM_MYSQL_USERNAME,
@@ -113,15 +138,17 @@ func initDatabase() *gorm.DB {
 		GORM_MYSQL_DB_NAME,
 	)
 
-	log.Println("Initialing database with dsn")
+	// log.Println("Initialing database with dsn")
+	logger.Info(ctx, "Initialing database with dsn")
 
 	dial := mysql.Open(dsn)
 	db, err := gorm.Open(dial, &gorm.Config{})
 	if err != nil {
-		log.Panic(err)
+		logger.Panic(ctx, "gorm cannot connect msql", zap.Error(err))
 	}
 
 	// returns database statistics
-	log.Println("database is running")
+	// log.Println("database is running")
+	logger.Info(ctx, "database is running", zap.String("address", GORM_MYSQL_HOST))
 	return db
 }

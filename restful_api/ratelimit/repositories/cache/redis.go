@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 	"time"
-	"watcharis/go-poc-protocal/restful_api/repositories"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
 
 	"github.com/redis/go-redis/v9"
 )
