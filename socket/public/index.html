@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <!-- <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script> -->
+</head>
+<body>
+    <h1>Socket.IO Chat</h1>
+    <input id="messageInput" type="text" placeholder="Type your message">
+    <button id="sendBtn">Send</button>
+    <div id="messages"></div>
+
+
+    <div>
+        <h1>Rooms</h1>
+        <input id="roomNameInput" type="text" placeholder="create your room">
+        <button id="joinRoom" onclick="joinRoom()">join_room</button>
+        <input id="roomMessageInput" type="text" placeholder="Enter message">
+        <button id="roomSendMessageBtn">Send Message</button>
+        <button id="leaveRoomBtn">leave_room</button>
+        <div id="roomMessages"></div>
+    </div>
+</body>
+
+<script>
+    // เชื่อมต่อไปยัง Socket.IO server
+    const socketChatServer = io("http://localhost:8999/chat-server");
+    const socketChatApp = io("http://localhost:8999/chat-app");
+    console.log("socketChatApp :", socketChatApp)
+    console.log("socketChatServer :", socketChatServer)
+
+    // ฟัง event welcome จาก server
+    socketChatApp.on("welcome", (data) => {
+        console.log("Server:", data);
+        const messagesDiv = document.getElementById("messages");
+        const newMessage = document.createElement("div");
+        newMessage.textContent = "Server: " + data;
+        messagesDiv.appendChild(newMessage);
+    });
+
+    socketChatServer.on("welcome", (data) => {
+        console.log("chat-server :", data)
+        socketChatServer.emit("chat", "running namespace chat-server!!!")
+    })
+
+    socketChatServer.on("reply", (data) => {
+        console.log("Server:", data);
+        const messagesDiv = document.getElementById("messages");
+        const newMessage = document.createElement("div");
+        newMessage.textContent = "Server: " + data;
+        messagesDiv.appendChild(newMessage);
+    });
+
+    // ฟัง event reply จาก server
+    socketChatApp.on("reply", (data) => {
+        console.log("Server:", data);
+        const messagesDiv = document.getElementById("messages");
+        const newMessage = document.createElement("div");
+        newMessage.textContent = "Server: " + data;
+        messagesDiv.appendChild(newMessage);
+    });
+
+    // ส่งข้อความไปยัง server
+    document.getElementById("sendBtn").addEventListener("click", () => {
+        const message = document.getElementById("messageInput").value;
+        console.log("message :", message)
+        socketChatApp.emit("chat", message);
+        document.getElementById("messageInput").value = "";
+    });
+
+    // --------------------------- Chat Room ------------------------------ 
+    // document.getElementById("joinRoom").addEventListener("click", () => {
+
+    //     const roomName = document.getElementById("roomNameInput").value;
+    //     console.log("roomName :", roomName)
+
+    //     const owner_chat_id = uuidv4();
+    //     let message = {
+    //         text: "",
+    //         room_name: roomName, 
+    //         access_token: "",
+    //         owner_chat_id: owner_chat_id,
+    //     }
+    //     socketChatApp.emit("join_room",  JSON.stringify(message));
+
+    //     document.getElementById("roomNameInput").value = "";
+    // });
+
+    const joinRoom = () => {
+        const roomName = document.getElementById("roomNameInput").value;
+        console.log("roomName :", roomName)
+
+        const owner_chat_id = generateUUID();
+        let message = {
+            text: "",
+            room_name: roomName, 
+            access_token: "",
+            owner_chat_id: owner_chat_id,
+        }
+
+        let message_str = JSON.stringify(message)
+        console.log("message_str :", message_str)
+
+        // emit message to event join_room
+        socketChatApp.emit("join_room",  message_str);
+
+        document.getElementById("roomNameInput").value = "";
+    }
+
+    // ฟัง event ว่าเข้าร่วม Room สำเร็จ
+    // let current_room = ''
+    socketChatApp.on("room_joined", (data) => {
+        console.log("data :", data)
+        let json_data = JSON.parse(data)
+        localStorage.setItem("current_room", json_data.room_name)
+        localStorage.setItem("owner_chat_id", json_data.owner_chat_id)
+        console.log("room_joined :", json_data.room_name)
+    });
+
+    // Send message to room
+    document.getElementById("roomSendMessageBtn").addEventListener("click", () => {
+        let current_room = localStorage.getItem("current_room");
+        let owner_chat_id = localStorage.getItem("owner_chat_id");
+        // const room = document.getElementById("roomNameInput").value;
+        console.log("roomSendMessageBtn room_name : ,", current_room)
+        console.log("roomSendMessageBtn owner_chat_id : ,", owner_chat_id)
+
+        let textMessage = document.getElementById("roomMessageInput").value
+        console.log("roomSendMessageBtn textMessage : ,", textMessage)
+
+        let message = {
+            text:  textMessage,
+            room_name: current_room, 
+            access_token: "",
+            owner_chat_id: owner_chat_id,
+        }
+
+        let message_str = JSON.stringify(message)
+        // const message = document.getElementById("roomMessageInput").value;
+        console.log('roomSendMessageBtn message :', message.text)
+        socketChatApp.emit("room_message", current_room, message_str);
+    });
+
+    // ฟัง event room_message
+    socketChatApp.on("room_message", (data) => {
+        console.log("channel.(room_message) data :", data)
+        const messagesDiv = document.getElementById("roomMessages");
+        const newMessage = document.createElement("div");
+        newMessage.textContent = data;
+        messagesDiv.appendChild(newMessage);
+    });
+
+    document.getElementById("leaveRoomBtn").addEventListener("click", () =>{
+        socketChatApp.emit("leave_room", current_room)
+    })
+
+    socketChatApp.on("room_cycle", (data) => {
+        console.log("data :", data)
+    })
+</script>
+
+<script>
+function generateUUID() {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+  
+    array[6] = (array[6] & 0x0f) | 0x40; // Set version to 4
+    array[8] = (array[8] & 0x3f) | 0x80; // Set variant to RFC 4122
+  
+    return [...array]
+      .map((b, i) => {
+        const hex = b.toString(16).padStart(2, '0');
+        return [4, 6, 8, 10].includes(i) ? `-${hex}` : hex;
+      })
+      .join('');
+}
+</script>
+</html>
