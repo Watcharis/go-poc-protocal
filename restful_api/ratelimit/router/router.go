@@ -18,5 +18,4 @@ func InitRouter(ctx context.Context, handlers handlers.RestFulAPIHandlers) http.
 	mux.HandleFunc("POST /api/v1/verify-otp-ratelimit", handlers.VerifyOtpRatelimit(ctx))
 
 	return trace.MiddlewareAddTrace(ctx, mux)
-	// return mux
 }
