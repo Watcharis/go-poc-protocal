@@ -10,7 +10,9 @@ import (
 	"sync"
 	"time"
 	"watcharis/go-poc-protocal/pkg/consent"
+	"watcharis/go-poc-protocal/pkg/dto"
 	"watcharis/go-poc-protocal/pkg/logger"
+	"watcharis/go-poc-protocal/pkg/trace"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/handlers"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/cache"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/db"
@@ -18,7 +20,6 @@ import (
 	"watcharis/go-poc-protocal/restful_api/ratelimit/services"
 
 	"github.com/redis/go-redis/v9"
-	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -40,11 +41,11 @@ const (
 
 func main() {
 	fmt.Println("start poc rest api")
-	ctx := context.Background()
+	// ctx := context.Background()
 
-	ctx = context.WithValue(ctx, logger.APP_NAME, logger.PROJECT_RATELIMIT)
+	ctx := context.WithValue(context.Background(), dto.APP_NAME, dto.PROJECT_RATELIMIT)
 
-	tp, err := logger.SetupTracer(ctx, logger.APP_NAME)
+	tp, err := trace.SetupTracer(ctx, dto.APP_NAME)
 	if err != nil {
 		log.Fatalf("failed to initialize tracer: %v", err)
 	}
@@ -54,12 +55,13 @@ func main() {
 		}
 	}()
 
-	tracer := otel.Tracer(logger.APP_NAME)
-	ctx, span := tracer.Start(ctx, logger.PROJECT_RATELIMIT)
-	defer span.End()
+	// tracer := otel.Tracer(logger.APP_NAME)
+	// ctx, span := tracer.Start(ctx, logger.PROJECT_RATELIMIT)
+	// defer span.End()
 
 	// Create logger with TraceID and SpanID automatically included
-	logger.NewZapWithTracing()
+	logger.InitOtelZapLogger("develop")
+	defer logger.Sync()
 
 	redisClient := initRedis(ctx)
 	gormDB := initDatabase(ctx)

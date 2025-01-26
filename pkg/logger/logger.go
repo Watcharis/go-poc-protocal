@@ -2,23 +2,55 @@ package logger
 
 import (
 	"context"
-	"fmt"
+	"log"
+	"watcharis/go-poc-protocal/pkg/dto"
 
 	"github.com/blendle/zapdriver"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-)
-
-const (
-	APP_NAME          string = "go-poc-protocal"
-	PROJECT_RATELIMIT string = "ratelimit-service"
 )
 
 var logger *otelzap.Logger
 
 func Sync() {
 	logger.Sync()
+}
+
+// NewZapWithTracing creates a logger that supports adding traceID and spanID
+func InitOtelZapLogger(env string) {
+
+	var encoderCfg zapcore.EncoderConfig
+	if env != "develop" {
+		log.Println("init zap config in Env: " + env)
+		encoderCfg = zap.NewProductionEncoderConfig()
+		encoderCfg.TimeKey = "timestamp"
+		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	} else {
+		log.Println("init zap config in Env: " + env)
+		encoderCfg = zap.NewDevelopmentEncoderConfig()
+		encoderCfg.TimeKey = "timestamp"
+		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	}
+
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		zapcore.AddSync(log.Writer()),
+		zapcore.DebugLevel,
+	)
+
+	zapLogger := zap.New(core,
+		zap.AddStacktrace(zap.InfoLevel),
+		zap.AddStacktrace(zap.ErrorLevel),
+		zap.AddStacktrace(zap.WarnLevel),
+		zap.AddStacktrace(zap.PanicLevel),
+		zap.AddStacktrace(zap.DebugLevel),
+		zap.AddStacktrace(zap.DPanicLevel),
+		zap.AddStacktrace(zap.FatalLevel),
+	)
+
+	logger = otelzap.New(zapLogger)
 }
 
 // func addTrace(ctx context.Context, fields []zapcore.Field) []zapcore.Field {
@@ -65,26 +97,25 @@ func Sync() {
 
 func addTrace(ctx context.Context, fields []zapcore.Field) []zapcore.Field {
 	// Add traceID and spanID to logger fields using Context
-	if span := trace.SpanFromContext(ctx); span != nil {
+	span := trace.SpanFromContext(ctx)
+	if span == nil {
+		return fields
+	}
 
-		spanContext := span.SpanContext()
+	spanContext := span.SpanContext()
+	if !spanContext.IsValid() {
+		return fields
+	}
 
-		if spanContext.IsValid() {
-			traceId := spanContext.TraceID().String()
-			spanId := spanContext.SpanID().String()
-			isSample := spanContext.TraceFlags().IsSampled()
+	traceId := spanContext.TraceID().String()
+	spanId := spanContext.SpanID().String()
+	isSample := spanContext.TraceFlags().IsSampled()
 
-			fmt.Println("traceId :", traceId)
-			fmt.Println("spanId :", spanId)
-			fmt.Println("isSample :", isSample)
-
-			projectName, ok := ctx.Value(APP_NAME).(string)
-			if ok {
-				fields = append(fields, zapdriver.TraceContext(traceId, spanId, isSample, projectName)...)
-			} else {
-				fields = append(fields, zapdriver.TraceContext(traceId, spanId, isSample, "")...)
-			}
-		}
+	projectName, ok := ctx.Value(dto.APP_NAME).(string)
+	if ok {
+		fields = append(fields, zapdriver.TraceContext(traceId, spanId, isSample, projectName)...)
+	} else {
+		fields = append(fields, zapdriver.TraceContext(traceId, spanId, isSample, "")...)
 	}
 	return fields
 }
@@ -111,4 +142,8 @@ func DPanic(ctx context.Context, msg string, fields ...zapcore.Field) {
 
 func Panic(ctx context.Context, msg string, fields ...zapcore.Field) {
 	logger.Ctx(ctx).Panic(msg, addTrace(ctx, fields)...)
+}
+
+func Fatal(ctx context.Context, msg string, fields ...zapcore.Field) {
+	logger.Ctx(ctx).Fatal(msg, addTrace(ctx, fields)...)
 }
