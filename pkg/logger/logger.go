@@ -97,6 +97,8 @@ func InitOtelZapLogger(env string) {
 
 func addTrace(ctx context.Context, fields []zapcore.Field) []zapcore.Field {
 	// Add traceID and spanID to logger fields using Context
+
+	// ดึง Span จาก Context ที่มีอยู่
 	span := trace.SpanFromContext(ctx)
 	if span == nil {
 		return fields
@@ -104,13 +106,15 @@ func addTrace(ctx context.Context, fields []zapcore.Field) []zapcore.Field {
 
 	spanContext := span.SpanContext()
 	if !spanContext.IsValid() {
-		return fields
+		return fields // ถ้า SpanContext ไม่ Valid, ไม่ต้องทำอะไร
 	}
 
+	// ดึงค่า TraceID และ SpanID
 	traceId := spanContext.TraceID().String()
 	spanId := spanContext.SpanID().String()
 	isSample := spanContext.TraceFlags().IsSampled()
 
+	// เพิ่มข้อมูล traceID, spanID ลงใน Log Fields
 	projectName, ok := ctx.Value(dto.APP_NAME).(string)
 	if ok {
 		fields = append(fields, zapdriver.TraceContext(traceId, spanId, isSample, projectName)...)

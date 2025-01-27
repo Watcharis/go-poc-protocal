@@ -109,6 +109,7 @@ func MiddlewareAddTrace(ctx context.Context, next http.Handler) http.Handler {
 		projectName := ctx.Value(dto.APP_NAME)
 		ctx := context.WithValue(r.Context(), dto.APP_NAME, projectName)
 
+		// start trace
 		tracer := otel.Tracer(dto.APP_NAME)
 		ctx, span := tracer.Start(ctx, dto.PROJECT_RATELIMIT,
 			trace.WithSpanKind(trace.SpanKindServer),

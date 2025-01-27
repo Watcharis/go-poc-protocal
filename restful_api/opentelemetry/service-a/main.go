@@ -8,67 +8,16 @@ import (
 	"net/http"
 	"os"
 	"sync"
-	"time"
 	"watcharis/go-poc-protocal/pkg"
 	"watcharis/go-poc-protocal/pkg/dto"
+	"watcharis/go-poc-protocal/pkg/httpclient"
 	"watcharis/go-poc-protocal/pkg/logger"
 
 	middlewareTrace "watcharis/go-poc-protocal/pkg/trace"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
-
-var otelHttpTransport *otelhttp.Transport
-var httpTransport *http.Transport
-
-func CreateHttpClient() *http.Client {
-	if httpTransport == nil {
-		t := http.DefaultTransport.(*http.Transport).Clone()
-		t.MaxConnsPerHost = 10
-		t.MaxIdleConns = 10
-		t.MaxIdleConnsPerHost = 10
-		t.IdleConnTimeout = 30 * time.Second
-		t.ResponseHeaderTimeout = 30 * time.Second
-		t.DisableKeepAlives = false
-		// t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-		httpTransport = t
-	}
-
-	httpClient := &http.Client{
-		Transport: httpTransport,
-		Timeout:   30 * time.Second,
-	}
-
-	return httpClient
-}
-
-func CreateOtelHttpClient() *http.Client {
-	// client := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
-	if otelHttpTransport == nil {
-		transport := &http.Transport{
-			MaxConnsPerHost:       10,
-			MaxIdleConns:          10,
-			MaxIdleConnsPerHost:   10,
-			IdleConnTimeout:       15 * time.Second,
-			ResponseHeaderTimeout: 15 * time.Second,
-			DisableKeepAlives:     false,
-		}
-
-		// การใช้ otelhttp.NewTransport สำหรับ HTTP Client เพื่อส่ง Trace Context ไปยัง Service ปลายทาง
-		// Trace Context จะถูกส่งจาก Service A ไปยัง Service B
-		otelHttpTransport = otelhttp.NewTransport(transport)
-	}
-
-	httpClient := &http.Client{
-		Transport: otelHttpTransport,
-		Timeout:   30 * time.Second,
-	}
-
-	return httpClient
-}
 
 func handleA(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -106,7 +55,7 @@ func callAnotherService(ctx context.Context) error {
 		return nil
 	}
 
-	httpClient := CreateOtelHttpClient()
+	httpClient := httpclient.CreateOtelHttpClient()
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -129,7 +78,7 @@ func callAnotherService(ctx context.Context) error {
 }
 
 func main() {
-	ctx := context.WithValue(context.Background(), dto.APP_NAME, dto.PROJECT_RATELIMIT)
+	ctx := context.WithValue(context.Background(), dto.APP_NAME, dto.PROJECT_OPENTELEMETRY_SERVICE_A)
 
 	tp, err := middlewareTrace.SetupTracer(ctx, dto.APP_NAME)
 	if err != nil {

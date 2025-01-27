@@ -3,18 +3,19 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
+	"watcharis/go-poc-protocal/pkg/logger"
 	"watcharis/go-poc-protocal/pkg/response"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
+
+	"go.uber.org/zap"
 )
 
 func (s *services) CreateOtp(ctx context.Context, req models.OtpRequest) (models.OtpResponse, error) {
-
 	if req.Otp == "" {
 		err := fmt.Errorf("otp is required")
-		log.Printf("[error] request missing otp : %v", err)
+		logger.Error(ctx, "request missing otp", zap.String("uuid", req.UUID), zap.Error(err))
 		return models.OtpResponse{
 			CommonResponse: response.CommonResponse{
 				Status: response.STATUS_ERROR,
@@ -32,7 +33,7 @@ func (s *services) CreateOtp(ctx context.Context, req models.OtpRequest) (models
 
 	otp, err := s.otpRepository.CreateOtp(ctx, dataOTP)
 	if err != nil {
-		log.Printf("[error] set otp to db : %v", err)
+		logger.Error(ctx, "[error] set otp to db failed", zap.String("uuid", req.UUID), zap.Error(err))
 		return models.OtpResponse{
 			CommonResponse: response.CommonResponse{
 				Status: response.STATUS_ERROR,
@@ -44,7 +45,7 @@ func (s *services) CreateOtp(ctx context.Context, req models.OtpRequest) (models
 
 	result, err := s.redis.Set(ctx, fmt.Sprintf(models.REDIS_OTP, otp.UUID), otp.Otp, time.Duration(models.OTP_EXPIRE))
 	if err != nil {
-		log.Printf("[error] set otp to redis : %v", err)
+		logger.Error(ctx, "[error] set otp to redis failed", zap.String("uuid", req.UUID), zap.Error(err))
 		return models.OtpResponse{
 			CommonResponse: response.CommonResponse{
 				Status: response.STATUS_ERROR,
@@ -54,7 +55,7 @@ func (s *services) CreateOtp(ctx context.Context, req models.OtpRequest) (models
 		}, nil
 	}
 
-	fmt.Printf("result : %v\n", result)
+	logger.Info(ctx, "set redis otp success", zap.String("result", result))
 	return models.OtpResponse{
 		CommonResponse: response.CommonResponse{
 			Status: response.STATUS_SUCCESS,

@@ -11,6 +11,7 @@ import (
 
 func (h *restFulAPIHandlers) CreateOtp(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx = r.Context()
 		logger.Info(ctx, "handler - CreateOtp")
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

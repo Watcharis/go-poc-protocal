@@ -3,12 +3,14 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 	"watcharis/go-poc-protocal/pkg"
+	"watcharis/go-poc-protocal/pkg/logger"
 	"watcharis/go-poc-protocal/pkg/response"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
+
+	"go.uber.org/zap"
 )
 
 func (s *services) CreateUserProfile(ctx context.Context, req models.ProifleRequest) (models.ProifleResponse, error) {
@@ -27,7 +29,7 @@ func (s *services) CreateUserProfile(ctx context.Context, req models.ProifleRequ
 	// Call repository
 	profile, err := s.profilesRepository.CreateUserProfile(ctx, profile)
 	if err != nil {
-		log.Printf("[error] create user profile to db : %v", err)
+		logger.Error(ctx, "[error] create user profile to db failed", zap.Error(err))
 		return models.ProifleResponse{}, err
 	}
 
@@ -44,7 +46,7 @@ func (s *services) CreateUserProfile(ctx context.Context, req models.ProifleRequ
 	redisProflekey := fmt.Sprintf(models.REDIS_USER_PROFILE, profile.UUID)
 	_, err = s.redis.Hset(ctx, redisProflekey, profileValue)
 	if err != nil {
-		log.Printf("[error] set user profile to db : %v", err)
+		logger.Error(ctx, "[error] set user profile to redis failed", zap.Error(err))
 		return models.ProifleResponse{}, err
 	}
 

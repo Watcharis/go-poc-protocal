@@ -11,10 +11,6 @@ import (
 
 func (h *restFulAPIHandlers) VerifyOtpRatelimit(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		// tracer := otel.Tracer(logger.APP_NAME)
-		// ctx, span := tracer.Start(ctx, logger.PROJECT_RATELIMIT)
-		// defer span.End()
 		ctx = r.Context()
 
 		logger.Info(ctx, "handler - VerifyOtpRatelimit")
