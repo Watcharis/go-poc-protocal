@@ -8,7 +8,7 @@ import (
 )
 
 type OnConnectFunc func(s socketio.Conn) error
-type OnDisconnectFunc func(socketio.Conn, string)
+type OnDisconnectFunc func(s socketio.Conn, reason string)
 type OnEvent interface{}
 
 type SocketIoRepository interface {
@@ -19,7 +19,7 @@ type SocketIoRepository interface {
 
 	// --------- general version ----------
 	Connects(ctx context.Context, namespace string, f func(s socketio.Conn) error) error
-	DisConnect(ctx context.Context, namespace string, f func(socketio.Conn, string)) error
+	Disconnect(ctx context.Context, namespace string, f func(s socketio.Conn, reason string)) error
 	Emit(s socketio.Conn, eventName, message string)
 }
 
@@ -58,14 +58,14 @@ func (r *socketIoRepository) Connect(ctx context.Context, namespace string, f On
 	return nil
 }
 
-func (r *socketIoRepository) DisConnects(ctx context.Context, namespace string, f OnConnectFunc) error {
-	r.server.OnDisconnect(namespace, func(s socketio.Conn, reason string) {
-		r.Behavier(s, f, reason)
-	})
+func (r *socketIoRepository) OnEvent(ctx context.Context, namespace string, event string, f OnEvent) error {
+	r.server.OnEvent(namespace, event, f)
 	return nil
 }
 
-func (r *socketIoRepository) OnEvent(ctx context.Context, namespace string, event string, f OnEvent) error {
-	r.server.OnEvent(namespace, event, f)
+func (r *socketIoRepository) Disconnects(ctx context.Context, namespace string, f OnDisconnectFunc) error {
+	r.server.OnDisconnect(namespace, func(s socketio.Conn, reason string) {
+		r.Behavier(s, f)
+	})
 	return nil
 }

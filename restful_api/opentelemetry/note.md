@@ -6,22 +6,22 @@
     - บทบาท: Logs ช่วยบอกว่าเกิดอะไรขึ้นในแอปพลิเคชันในเวลาที่แน่นอน โดยมักจะละเอียดและเฉพาะเจาะจง
     - ตัวอย่างการใช้งาน: เมื่อเซิร์ฟเวอร์ล้มเหลว Logs จะบันทึกรายละเอียด เช่น "Database connection timeout at 10:05 PM"
 
-#  Distributed Tracing
+## Distributed Tracing
     - คืออะไร: Distributed Tracing ใช้ติดตามคำขอ (requests) หรือกระบวนการ (transactions) ที่วิ่งผ่านหลายๆ บริการ (services) ในระบบกระจาย เช่น Microservices
     - บทบาท: ช่วยให้เข้าใจว่าเส้นทางของคำขอนั้นผ่านบริการไหนบ้าง และใช้เวลาเท่าไรในแต่ละจุด
     - ตัวอย่างการใช้งาน: หากระบบช้าลง Distributed Tracing ช่วยระบุว่าความล่าช้าเกิดที่บริการใด เช่น API Gateway หรือ Database
 
-# Metrics
+## Metrics
     - คืออะไร: Metrics เป็นข้อมูลเชิงตัวเลขที่เก็บรวบรวมเพื่อบอกสถานะและประสิทธิภาพของระบบ เช่น CPU Usage, Memory Usage, Request Rate, Error Rate
     - บทบาท: ใช้ตรวจวัดและตั้งค่าการแจ้งเตือน (alerts) หากค่าของ Metrics ผิดปกติ
     - ตัวอย่างการใช้งาน: ถ้าจำนวน Error Rate เพิ่มขึ้น Metrics จะช่วยเตือนว่ามีปัญหา
 
 
-### ความสัมพันธ์ระหว่าง Logs, Tracing และ Metrics
-ทั้งสามทำงานร่วมกันเพื่อให้มุมมองที่ครอบคลุมเกี่ยวกับระบบ:
-- Logs + Metrics: หาก Metrics บ่งชี้ถึงปัญหา เช่น Error Rate เพิ่มขึ้น Logs จะช่วยให้เจาะลึกได้ว่า Error เกิดจากอะไร
-- Tracing + Metrics: Distributed Tracing สามารถบอกได้ว่าปัญหาเกิดขึ้นที่บริการใด ขณะที่ Metrics ช่วยติดตามแนวโน้มของปัญหานั้น
-- Tracing + Logs: Tracing ช่วยแสดงเส้นทางการทำงานและบริบท (context) ของคำขอ ขณะที่ Logs บันทึกรายละเอียดเฉพาะของแต่ละเหตุการณ์ในคำขอนั้น
+## ความสัมพันธ์ระหว่าง Logs, Tracing และ Metrics
+    ทั้งสามทำงานร่วมกันเพื่อให้มุมมองที่ครอบคลุมเกี่ยวกับระบบ:
+    - Logs + Metrics: หาก Metrics บ่งชี้ถึงปัญหา เช่น Error Rate เพิ่มขึ้น Logs จะช่วยให้เจาะลึกได้ว่า Error เกิดจากอะไร
+    - Tracing + Metrics: Distributed Tracing สามารถบอกได้ว่าปัญหาเกิดขึ้นที่บริการใด ขณะที่ Metrics ช่วยติดตามแนวโน้มของปัญหานั้น
+    - Tracing + Logs: Tracing ช่วยแสดงเส้นทางการทำงานและบริบท (context) ของคำขอ ขณะที่ Logs บันทึกรายละเอียดเฉพาะของแต่ละเหตุการณ์ในคำขอนั้น
 
 Service A:
 -   ใช้ otelhttp.NewTransport สำหรับ HTTP Client เพื่อส่ง Trace Context ไปยัง Service B

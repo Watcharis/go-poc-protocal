@@ -19,6 +19,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	ENDPOINT_SERVICE_B = "http://localhost:8779/api/v1/svcb"
+	PORT               = ":8778"
+)
+
 func handleA(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	span := trace.SpanFromContext(ctx)
@@ -44,13 +49,13 @@ func InitRouter(ctx context.Context) http.Handler {
 	mux.HandleFunc("GET /health", pkg.HealthCheck)
 	mux.Handle("GET /api/v1/svca", http.HandlerFunc(handleA))
 
-	handler := middlewareTrace.MiddlewareAddTrace(ctx, mux)
+	handler := middlewareTrace.MiddlewareAddTraceHandler(ctx, mux)
 	return handler
 }
 
 func callAnotherService(ctx context.Context) error {
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:8779/api/v1/svcb", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ENDPOINT_SERVICE_B, nil)
 	if err != nil {
 		return nil
 	}
@@ -95,18 +100,18 @@ func main() {
 
 	routeHandlers := InitRouter(ctx)
 
-	httpServer := http.Server{
-		Addr:    ":8778",
+	httpServer := &http.Server{
+		Addr:    PORT,
 		Handler: routeHandlers,
 	}
 
-	go func(port string) {
+	go func(httpServer *http.Server) {
 		defer httpServer.Close()
-		logger.Info(ctx, "Server runnig on http://localhost"+port)
+		logger.Info(ctx, "Server runnig on http://localhost"+httpServer.Addr)
 		if err := httpServer.ListenAndServe(); err != nil {
 			logger.Panic(ctx, "cannot start server", zap.Error(err))
 		}
-	}(httpServer.Addr)
+	}(httpServer)
 
 	wg := new(sync.WaitGroup)
 	signal := make(chan os.Signal, 1)

@@ -11,7 +11,7 @@ func (r *socketIoRepository) Connects(ctx context.Context, namespace string, f f
 	return nil
 }
 
-func (r *socketIoRepository) DisConnect(ctx context.Context, namespace string, f func(socketio.Conn, string)) error {
+func (r *socketIoRepository) Disconnect(ctx context.Context, namespace string, f func(s socketio.Conn, reason string)) error {
 	r.server.OnDisconnect(namespace, f)
 	return nil
 }

@@ -102,6 +102,7 @@ func SetupTracer(ctx context.Context, appName string) (*sdktrace.TracerProvider,
 	return tp, nil
 }
 
+// genneral version
 func MiddlewareAddTrace(ctx context.Context, next http.Handler) http.Handler {
 	// ใช้ otelhttp.NewHandler Wrap http.Handle
 	// เพื่อดึง Trace Context จาก Header
@@ -119,5 +120,33 @@ func MiddlewareAddTrace(ctx context.Context, next http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
+
 	}), dto.APP_NAME)
 }
+
+// refactor version
+func MiddlewareAddTraceHandler(ctx context.Context, next http.Handler) http.Handler {
+	return otelhttp.NewHandler(addTraceHandlerFunc(ctx, next), dto.APP_NAME)
+}
+
+func addTraceHandlerFunc(ctx context.Context, next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		projectName := ctx.Value(dto.APP_NAME)
+		ctx = context.WithValue(r.Context(), dto.APP_NAME, projectName)
+
+		// start trace
+		tracer := otel.Tracer(dto.APP_NAME)
+		ctx, span := tracer.Start(ctx, dto.PROJECT_RATELIMIT,
+			trace.WithSpanKind(trace.SpanKindServer),
+		)
+		defer span.End()
+
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	}
+}
+
+// func addTraceHandler(w http.ResponseWriter, r *http.Request) {
+
+// }

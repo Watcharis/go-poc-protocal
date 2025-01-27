@@ -16,6 +16,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	PORT = ":8779"
+)
+
 func handleB(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -34,7 +38,7 @@ func InitRouter(ctx context.Context) http.Handler {
 	mux.HandleFunc("GET /health", pkg.HealthCheck)
 	mux.Handle("GET /api/v1/svcb", http.HandlerFunc(handleB))
 
-	handler := middlewareTrace.MiddlewareAddTrace(ctx, mux)
+	handler := middlewareTrace.MiddlewareAddTraceHandler(ctx, mux)
 	return handler
 }
 
@@ -56,18 +60,18 @@ func main() {
 
 	routeHandlers := InitRouter(ctx)
 
-	httpServer := http.Server{
-		Addr:    ":8779",
+	httpServer := &http.Server{
+		Addr:    PORT,
 		Handler: routeHandlers,
 	}
 
-	go func(port string) {
+	go func(httpServer *http.Server) {
 		defer httpServer.Close()
-		logger.Info(ctx, "Server runnig on http://localhost"+port)
+		logger.Info(ctx, "Server runnig on http://localhost"+httpServer.Addr)
 		if err := httpServer.ListenAndServe(); err != nil {
 			logger.Panic(ctx, "cannot start server", zap.Error(err))
 		}
-	}(httpServer.Addr)
+	}(httpServer)
 
 	wg := new(sync.WaitGroup)
 	signal := make(chan os.Signal, 1)
