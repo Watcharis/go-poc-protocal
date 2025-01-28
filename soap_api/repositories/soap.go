@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"watcharis/go-poc-protocal/pkg/httpclient"
 	"watcharis/go-poc-protocal/soap_api/models"
 )
 
@@ -43,7 +44,7 @@ func (r *soapRepository) SoapVerifyUser(ctx context.Context, data models.VerifyU
 	// req.Header.Set("SOAPAction", soapAction)
 
 	// Send the HTTP request
-	httpClient := CreateHttpClient()
+	httpClient := httpclient.CreateHttpClient()
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
