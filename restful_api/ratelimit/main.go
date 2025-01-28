@@ -40,9 +40,6 @@ const (
 )
 
 func main() {
-	fmt.Println("start poc rest api")
-	// ctx := context.Background()
-
 	ctx := context.WithValue(context.Background(), dto.APP_NAME, dto.PROJECT_RATELIMIT)
 
 	tp, err := trace.SetupTracer(ctx, dto.APP_NAME)
@@ -85,11 +82,8 @@ func main() {
 
 	go func(port string) {
 		defer httpServer.Close()
-		// log.Printf("Server running on http://localhost%s\n", port)
 		logger.Info(ctx, "Server runnig on http://localhost"+port)
 		if err := httpServer.ListenAndServe(); err != nil {
-			// log.Println("[error] cannot start server :", err)
-			// logger.Error("cannot start server", zap.Error(err))
 			logger.Panic(ctx, "cannot start server", zap.Error(err))
 		}
 	}(httpServer.Addr)
@@ -140,7 +134,6 @@ func initDatabase(ctx context.Context) *gorm.DB {
 		GORM_MYSQL_DB_NAME,
 	)
 
-	// log.Println("Initialing database with dsn")
 	logger.Info(ctx, "Initialing database with dsn")
 
 	dial := mysql.Open(dsn)
@@ -149,8 +142,6 @@ func initDatabase(ctx context.Context) *gorm.DB {
 		logger.Panic(ctx, "gorm cannot connect msql", zap.Error(err))
 	}
 
-	// returns database statistics
-	// log.Println("database is running")
 	logger.Info(ctx, "database is running", zap.String("address", GORM_MYSQL_HOST))
 	return db
 }

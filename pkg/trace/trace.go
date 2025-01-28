@@ -135,7 +135,7 @@ func addTraceHandlerFunc(ctx context.Context, next http.Handler) http.HandlerFun
 		ctx = context.WithValue(r.Context(), dto.APP_NAME, projectName)
 
 		// start trace
-		tracer := otel.Tracer(dto.APP_NAME)
+		tracer := otel.Tracer(dto.APP_NAME) // สร้าง span
 		ctx, span := tracer.Start(ctx, dto.PROJECT_RATELIMIT,
 			trace.WithSpanKind(trace.SpanKindServer),
 		)
@@ -146,7 +146,3 @@ func addTraceHandlerFunc(ctx context.Context, next http.Handler) http.HandlerFun
 		next.ServeHTTP(w, r)
 	}
 }
-
-// func addTraceHandler(w http.ResponseWriter, r *http.Request) {
-
-// }

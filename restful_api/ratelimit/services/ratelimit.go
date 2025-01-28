@@ -68,7 +68,10 @@ func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpR
 
 			// not found otp in db || otp not match
 			if otpDB == (models.OtpDB{}) || otpDB.Otp != req.Otp {
-				logger.Info(ctx, "otp not found in DB or otp not match", zap.String("uuid", req.Uuid), zap.String("otp", req.Otp), zap.String("otpDB", otpDB.Otp))
+				logger.Info(ctx, "otp not found in DB or otp not match", zap.String("uuid", req.Uuid),
+					zap.String("otp", req.Otp),
+					zap.String("otpDB", otpDB.Otp))
+
 				// start increment otp ratelimit
 				countOtp, err := s.redis.Increment(ctx, redisKeyRatelimitOTP)
 				if err != nil {
@@ -78,7 +81,7 @@ func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpR
 						Error:          &response.ErrorResponse{ErrorMessage: err.Error()},
 					}, nil
 				}
-				logger.Info(ctx, "increment otp ratelimit", zap.Int64("countOtp", countOtp))
+				logger.Info(ctx, "increment otp ratelimit", zap.Int64("countOtp", countOtp), zap.String("uuid", req.Uuid))
 
 				if countOtp == models.RATELIMIT_OTP {
 					logger.Info(ctx, "otp ratelimit exceed ", zap.Int64("countOtp", countOtp), zap.String("uuid", req.Uuid))
@@ -133,7 +136,10 @@ func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpR
 	}
 
 	if otpFromRedis != req.Otp {
-		logger.Info(ctx, "otp in redis not match with request otp", zap.String("uuid", req.Uuid), zap.String("redis_otp", otpFromRedis), zap.String("request_otp", req.Otp))
+		logger.Info(ctx, "otp in redis not match with request otp", zap.String("uuid", req.Uuid),
+			zap.String("redis_otp", otpFromRedis),
+			zap.String("request_otp", req.Otp))
+
 		// start increment otp ratelimit
 		countOtp, err := s.redis.Increment(ctx, redisKeyRatelimitOTP)
 		if err != nil {
@@ -143,7 +149,7 @@ func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpR
 				Error:          &response.ErrorResponse{ErrorMessage: err.Error()},
 			}, nil
 		}
-		logger.Info(ctx, "increment otp ratelimit", zap.Int64("countOtp", countOtp))
+		logger.Info(ctx, "increment otp ratelimit", zap.Int64("countOtp", countOtp), zap.String("uuid", req.Uuid))
 
 		if countOtp == models.RATELIMIT_OTP {
 			logger.Info(ctx, "otp ratelimit exceed ", zap.Int64("countOtp", countOtp), zap.String("uuid", req.Uuid))
@@ -168,7 +174,7 @@ func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpR
 		}, nil
 	}
 
-	logger.Info(ctx, "verify otp success", zap.String("otp", req.Otp))
+	logger.Info(ctx, "verify otp success", zap.String("otp", req.Otp), zap.String("uuid", req.Uuid))
 	return models.VerifyOtpRatelimitResponse{
 		CommonResponse: response.SetCommonResponse(response.STATUS_SUCCESS, http.StatusOK),
 		Data: &models.VerifyOtpRatelimitDataResponse{
