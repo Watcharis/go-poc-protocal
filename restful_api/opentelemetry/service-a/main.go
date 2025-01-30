@@ -49,7 +49,7 @@ func InitRouter(ctx context.Context) http.Handler {
 	mux.HandleFunc("GET /health", pkg.HealthCheck)
 	mux.Handle("GET /api/v1/svca", http.HandlerFunc(handleA))
 
-	handler := middlewareTrace.MiddlewareAddTraceHandler(ctx, mux)
+	handler := middlewareTrace.MiddlewareWarpOtelHttp(ctx, mux)
 	return handler
 }
 

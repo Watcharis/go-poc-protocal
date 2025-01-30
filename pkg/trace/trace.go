@@ -125,7 +125,7 @@ func MiddlewareAddTrace(ctx context.Context, next http.Handler) http.Handler {
 }
 
 // refactor version
-func MiddlewareAddTraceHandler(ctx context.Context, next http.Handler) http.Handler {
+func MiddlewareWarpOtelHttp(ctx context.Context, next http.Handler) http.Handler {
 	return otelhttp.NewHandler(addTraceHandlerFunc(ctx, next), dto.APP_NAME)
 }
 
