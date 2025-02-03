@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"watcharis/go-poc-protocal/pkg"
 	"watcharis/go-poc-protocal/socket/models"
@@ -201,7 +203,7 @@ func InitSocketIo() *socketio.Server {
 	return server
 }
 
-func InitRouter(server *socketio.Server) *http.ServeMux {
+func InitRouter(server *socketio.Server) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", pkg.HealthCheck)
@@ -209,7 +211,24 @@ func InitRouter(server *socketio.Server) *http.ServeMux {
 	// เชื่อม Socket.IO เข้ากับ HTTP server
 	// mux.HandleFunc("/socket.io/", server.ServeHTTP)
 	mux.Handle("/socket.io/", server)
-	mux.Handle("/", http.FileServer(http.Dir("./public")))
+	mux.Handle("/", http.FileServer(http.Dir(serveFile("./public"))))
 
 	return mux
+}
+
+func serveFile(path string) string {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sAbsPath := strings.Split(absPath, "/")
+	if sAbsPath[len(sAbsPath)-2] != "socket" {
+		newPath := []string{}
+		newPath = append(newPath, sAbsPath[0:len(sAbsPath)-1]...)
+		newPath = append(newPath, "socket")
+		newPath = append(newPath, sAbsPath[len(sAbsPath)-1])
+		absPath = strings.Join(newPath, "/")
+	}
+	return absPath
 }
