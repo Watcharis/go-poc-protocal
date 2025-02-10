@@ -13,6 +13,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpRatelimitRequest) (models.VerifyOtpRatelimitResponse, error) {
@@ -58,16 +59,8 @@ func (s *services) VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpR
 
 			// get otp from db
 			otpDB, err := s.otpRepository.GetOtp(ctx, req.Uuid, req.Otp)
-			if err != nil {
-				logger.Error(ctx, "[error] get otp from db", zap.String("uuid", req.Uuid), zap.Error(err))
-				return models.VerifyOtpRatelimitResponse{
-					CommonResponse: response.SetCommonResponse(response.STATUS_ERROR, http.StatusNotFound),
-					Error:          &response.ErrorResponse{ErrorMessage: err.Error()},
-				}, nil
-			}
-
-			// not found otp in db || otp not match
-			if otpDB == (models.OtpDB{}) || otpDB.Otp != req.Otp {
+			if err != nil || errors.Is(err, gorm.ErrRecordNotFound) || otpDB == (models.OtpDB{}) || otpDB.Otp != req.Otp {
+				// not found otp in db || otp not match
 				logger.Info(ctx, "otp not found in DB or otp not match", zap.String("uuid", req.Uuid),
 					zap.String("otp", req.Otp),
 					zap.String("otpDB", otpDB.Otp))
