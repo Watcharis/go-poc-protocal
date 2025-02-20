@@ -18,6 +18,7 @@ type ProifleRequest struct {
 
 type ProifleResponse struct {
 	response.CommonResponse
+	Data  *ProfileDB              `json:"data,omitempty"`
 	Error *response.ErrorResponse `json:"error,omitempty"`
 }
 
@@ -28,8 +29,8 @@ type ProfileDB struct {
 	LastName  string    `json:"lastname" gorm:"column:lastname" redis:"lastname" validate:"required"`
 	Email     string    `json:"email" gorm:"column:email" redis:"email" validate:"required"`
 	Phone     string    `json:"phone" gorm:"column:phone" redis:"phone" validate:"required"`
-	CreatedAt time.Time `gorm:"column:created_at" redis:"-" validate:"required"`
-	UpdatedAt time.Time `gorm:"column:created_at" redis:"-" validate:"required"`
+	CreatedAt time.Time `json:"-" gorm:"column:created_at" redis:"-" validate:"required"`
+	UpdatedAt time.Time `json:"-" gorm:"column:created_at" redis:"-" validate:"required"`
 }
 
 func (m *ProfileDB) TableName() string {

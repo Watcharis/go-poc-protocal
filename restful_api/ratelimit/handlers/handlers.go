@@ -10,6 +10,7 @@ type RestFulAPIHandlers interface {
 	CreateUserProfile(ctx context.Context) http.HandlerFunc
 	CreateOtp(ctx context.Context) http.HandlerFunc
 	VerifyOtpRatelimit(ctx context.Context) http.HandlerFunc
+	GetUserProfile(ctx context.Context) http.HandlerFunc
 }
 
 type restFulAPIHandlers struct {

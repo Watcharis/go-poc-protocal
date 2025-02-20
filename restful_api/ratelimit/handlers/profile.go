@@ -44,3 +44,38 @@ func (h *restFulAPIHandlers) CreateUserProfile(ctx context.Context) http.Handler
 		}
 	}
 }
+
+func (h *restFulAPIHandlers) GetUserProfile(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx = r.Context()
+		logger.Info(ctx, "handler - GetUserProfile")
+
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Get path parameter from request /{uuid}
+		// uuid := r.URL.Query().Get("uuid")
+		uuid := r.Header.Get("uuid")
+		if uuid == "" {
+			http.Error(w, "uuid is required", http.StatusBadRequest)
+			return
+		}
+
+		// get user profile
+		result, err := h.services.GetUserProfile(ctx, uuid)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w = pkg.SetContentType(w, "application/json")
+		w = pkg.SetHttpStatusCode(w, http.StatusOK)
+
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}

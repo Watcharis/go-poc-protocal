@@ -12,10 +12,13 @@ type RedisRepository interface {
 	Hset(ctx context.Context, key string, values []string) (int64, error)
 	Increment(ctx context.Context, key string) (int64, error)
 	Expire(ctx context.Context, key string, expiration time.Duration) (bool, error)
+	Hgetall(ctx context.Context, key string) (map[string]string, error)
+	HgetallProfile(ctx context.Context, key string) (models.ProfileDB, error)
 }
 
 type ProfilesRepository interface {
 	CreateUserProfile(ctx context.Context, data models.ProfileDB) (models.ProfileDB, error)
+	GetUserProfile(ctx context.Context, uuid string) (models.ProfileDB, error)
 }
 
 type OtpRepository interface {

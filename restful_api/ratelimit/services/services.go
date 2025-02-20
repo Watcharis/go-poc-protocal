@@ -10,6 +10,7 @@ type Services interface {
 	CreateUserProfile(ctx context.Context, req models.ProifleRequest) (models.ProifleResponse, error)
 	CreateOtp(ctx context.Context, req models.OtpRequest) (models.OtpResponse, error)
 	VerifyOtpRatelimit(ctx context.Context, req models.VerifyOtpRatelimitRequest) (models.VerifyOtpRatelimitResponse, error)
+	GetUserProfile(ctx context.Context, uuid string) (models.ProifleResponse, error)
 }
 
 type services struct {

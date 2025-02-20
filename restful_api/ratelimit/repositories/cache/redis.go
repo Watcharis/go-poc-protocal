@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"time"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
 
 	"github.com/redis/go-redis/v9"
@@ -54,6 +55,22 @@ func (r *redisRepository) Expire(ctx context.Context, key string, expiration tim
 	result, err := r.redisClient.Expire(ctx, key, expiration).Result()
 	if err != nil {
 		return false, err
+	}
+	return result, nil
+}
+
+func (r *redisRepository) Hgetall(ctx context.Context, key string) (map[string]string, error) {
+	result, err := r.redisClient.HGetAll(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *redisRepository) HgetallProfile(ctx context.Context, key string) (models.ProfileDB, error) {
+	var result models.ProfileDB
+	if err := r.redisClient.HGetAll(ctx, key).Scan(&result); err != nil {
+		return models.ProfileDB{}, err
 	}
 	return result, nil
 }

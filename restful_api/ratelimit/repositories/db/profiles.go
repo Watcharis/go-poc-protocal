@@ -24,3 +24,11 @@ func (r *profileRepository) CreateUserProfile(ctx context.Context, data models.P
 	}
 	return data, nil
 }
+
+func (r *profileRepository) GetUserProfile(ctx context.Context, uuid string) (models.ProfileDB, error) {
+	var profile models.ProfileDB
+	if err := r.db.WithContext(ctx).Debug().Table("profiles").Where("uuid = ?", uuid).First(&profile).Error; err != nil {
+		return models.ProfileDB{}, err
+	}
+	return profile, nil
+}

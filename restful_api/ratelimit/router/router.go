@@ -17,7 +17,7 @@ func InitRouter(ctx context.Context, handlers handlers.RestFulAPIHandlers) http.
 	// Configure CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"}, // Restrict to specific origin
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		AllowedHeaders:   []string{"Origin", "Content-Type", "Accept"},
 		AllowCredentials: true,
 	})
@@ -25,6 +25,7 @@ func InitRouter(ctx context.Context, handlers handlers.RestFulAPIHandlers) http.
 	mux.HandleFunc("GET /health", pkg.HealthCheck)
 
 	mux.HandleFunc("POST /api/v1/create-user-profile", handlers.CreateUserProfile(ctx))
+	mux.HandleFunc("GET /api/v1/get-user-profile", handlers.GetUserProfile(ctx))
 	mux.HandleFunc("POST /api/v1/create-otp", handlers.CreateOtp(ctx))
 	mux.HandleFunc("POST /api/v1/verify-otp-ratelimit", handlers.VerifyOtpRatelimit(ctx))
 
