@@ -3,16 +3,21 @@ package db
 import (
 	"context"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
-	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
 
 	"gorm.io/gorm"
 )
+
+// mockgen -source=db/profiles.go -destination=db/mocks/profiles_mock.go -package=mocks
+type ProfilesRepository interface {
+	CreateUserProfile(ctx context.Context, data models.ProfileDB) (models.ProfileDB, error)
+	GetUserProfile(ctx context.Context, uuid string) (models.ProfileDB, error)
+}
 
 type profileRepository struct {
 	db *gorm.DB
 }
 
-func NewProfileRepository(db *gorm.DB) repositories.ProfilesRepository {
+func NewProfileRepository(db *gorm.DB) ProfilesRepository {
 	return &profileRepository{
 		db: db,
 	}

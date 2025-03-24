@@ -3,7 +3,8 @@ package services
 import (
 	"context"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
-	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/cache"
+	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/db"
 )
 
 type Services interface {
@@ -14,14 +15,14 @@ type Services interface {
 }
 
 type services struct {
-	redis              repositories.RedisRepository
-	profilesRepository repositories.ProfilesRepository
-	otpRepository      repositories.OtpRepository
+	redis              cache.RedisRepository
+	profilesRepository db.ProfilesRepository
+	otpRepository      db.OtpRepository
 }
 
-func NewServices(redis repositories.RedisRepository,
-	profilesRepository repositories.ProfilesRepository,
-	otpRepository repositories.OtpRepository) Services {
+func NewServices(redis cache.RedisRepository,
+	profilesRepository db.ProfilesRepository,
+	otpRepository db.OtpRepository) Services {
 	return &services{
 		redis:              redis,
 		profilesRepository: profilesRepository,

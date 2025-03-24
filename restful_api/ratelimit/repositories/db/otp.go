@@ -3,16 +3,20 @@ package db
 import (
 	"context"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
-	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
 
 	"gorm.io/gorm"
 )
+
+type OtpRepository interface {
+	CreateOtp(ctx context.Context, data models.OtpDB) (models.OtpDB, error)
+	GetOtp(ctx context.Context, uuid string, otp string) (models.OtpDB, error)
+}
 
 type otpRepository struct {
 	db *gorm.DB
 }
 
-func NewOtpRepository(db *gorm.DB) repositories.OtpRepository {
+func NewOtpRepository(db *gorm.DB) OtpRepository {
 	return &otpRepository{
 		db: db,
 	}

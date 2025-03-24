@@ -16,9 +16,10 @@ func InitRouter(ctx context.Context, handlers handlers.RestFulAPIHandlers) http.
 
 	// Configure CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // Restrict to specific origin
-		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-		AllowedHeaders:   []string{"Origin", "Content-Type", "Accept"},
+		AllowedOrigins: []string{"http://localhost:3000"}, // Restrict to specific origin
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "*"},
+		// AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	})
 

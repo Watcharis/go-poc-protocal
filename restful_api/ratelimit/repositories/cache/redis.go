@@ -4,16 +4,27 @@ import (
 	"context"
 	"time"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
-	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories"
 
 	"github.com/redis/go-redis/v9"
 )
+
+// mockgen -source=cache/redis.go -destination=cache/mocks/redis_mock.go -package=mocks
+
+type RedisRepository interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value string, expiration time.Duration) (string, error)
+	Hset(ctx context.Context, key string, values []string) (int64, error)
+	Increment(ctx context.Context, key string) (int64, error)
+	Expire(ctx context.Context, key string, expiration time.Duration) (bool, error)
+	Hgetall(ctx context.Context, key string) (map[string]string, error)
+	HgetallProfile(ctx context.Context, key string) (models.ProfileDB, error)
+}
 
 type redisRepository struct {
 	redisClient *redis.Client
 }
 
-func NewRedisRepository(redisClient *redis.Client) repositories.RedisRepository {
+func NewRedisRepository(redisClient *redis.Client) RedisRepository {
 	return &redisRepository{
 		redisClient: redisClient,
 	}
