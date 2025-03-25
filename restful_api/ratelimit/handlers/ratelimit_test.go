@@ -43,9 +43,11 @@ func init() {
 }
 
 func Test_restFulAPIHandlers_VerifyOtpRatelimit(t *testing.T) {
+
 	type fields struct {
 		services *mockServices.MockServices
 	}
+
 	type args struct {
 		ctx context.Context
 		req models.VerifyOtpRatelimitRequest
@@ -63,7 +65,7 @@ func Test_restFulAPIHandlers_VerifyOtpRatelimit(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
-			name: "case 1",
+			name: "verify otp ratelimit success",
 			fields: fields{
 				services: mockServices.NewMockServices(ctrl),
 			},
@@ -103,7 +105,7 @@ func Test_restFulAPIHandlers_VerifyOtpRatelimit(t *testing.T) {
 
 			reqBytes, _ := json.Marshal(tt.args.req)
 
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/verify-otp-ratelimit", bytes.NewReader(reqBytes))
+			req := httptest.NewRequestWithContext(tt.args.ctx, http.MethodPost, "/api/v1/verify-otp-ratelimit", bytes.NewReader(reqBytes))
 			req.Header.Set("Content-Type", "application/json")
 
 			rec := httptest.NewRecorder()
