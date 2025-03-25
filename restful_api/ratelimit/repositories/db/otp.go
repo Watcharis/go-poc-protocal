@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// mockgen -source=db/otp.go -destination=db/mocks/otp_mock.go -package=mocks
 type OtpRepository interface {
 	CreateOtp(ctx context.Context, data models.OtpDB) (models.OtpDB, error)
 	GetOtp(ctx context.Context, uuid string, otp string) (models.OtpDB, error)

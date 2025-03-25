@@ -7,6 +7,7 @@ import (
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/db"
 )
 
+// mockgen -source=services/services.go -destination=services/mocks/services_mock.go -package=mocks
 type Services interface {
 	CreateUserProfile(ctx context.Context, req models.ProifleRequest) (models.ProifleResponse, error)
 	CreateOtp(ctx context.Context, req models.OtpRequest) (models.OtpResponse, error)
