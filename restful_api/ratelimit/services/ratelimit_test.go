@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"time"
 	"watcharis/go-poc-protocal/pkg/dto"
 	"watcharis/go-poc-protocal/pkg/logger"
 	"watcharis/go-poc-protocal/pkg/response"
@@ -23,7 +24,7 @@ import (
 
 func init() {
 
-	ctx := context.WithValue(context.Background(), dto.APP_NAME, dto.PROJECT_RATELIMIT)
+	ctx := context.WithValue(context.Background(), "", "")
 
 	tp, err := trace.SetupTracer(ctx, dto.APP_NAME)
 	if err != nil {
@@ -234,6 +235,74 @@ func Test_services_VerifyOtpRatelimit_use_gomock_gen(t *testing.T) {
 				CommonResponse: response.SetCommonResponse(response.STATUS_ERROR, http.StatusNotFound),
 				Error: &response.ErrorResponse{
 					ErrorMessage: "otp not match",
+				},
+			},
+		},
+		{
+			name: "get otp from redis Nil and otp match in db",
+			args: args{
+				ctx: context.Background(),
+				req: models.VerifyOtpRatelimitRequest{
+					Uuid: "1234",
+					Otp:  "200139",
+				},
+			},
+			senario: func(args args) mockRepository {
+
+				mockRepositories := initMockRepository(ctrl)
+
+				redisKeyRatelimitOTP := fmt.Sprintf(models.REDIS_RATELIMIT_OTP, args.req.Uuid)
+				mockRepositories.mockRedis.EXPECT().Get(args.ctx, redisKeyRatelimitOTP).Return("1", nil)
+
+				redisKeyOTP := fmt.Sprintf(models.REDIS_OTP, args.req.Uuid)
+				mockRepositories.mockRedis.EXPECT().Get(args.ctx, redisKeyOTP).Return("", redis.Nil)
+
+				mockRepositories.mockOtpRepository.EXPECT().GetOtp(args.ctx, args.req.Uuid, args.req.Otp).Return(models.OtpDB{
+					ID:   1,
+					UUID: "1234",
+					Otp:  "200139",
+				}, nil)
+
+				mockRepositories.mockRedis.EXPECT().Set(args.ctx, redisKeyOTP, args.req.Otp, time.Duration(models.OTP_EXPIRE)).Return("200139", nil)
+
+				return mockRepositories
+			},
+			want: models.VerifyOtpRatelimitResponse{
+				CommonResponse: response.SetCommonResponse(response.STATUS_SUCCESS, http.StatusOK),
+				Data: &models.VerifyOtpRatelimitDataResponse{
+					Otp: "200139",
+				},
+			},
+		},
+		{
+			name: "otp not match from request",
+			args: args{
+				ctx: context.Background(),
+				req: models.VerifyOtpRatelimitRequest{
+					Uuid: "1234",
+					Otp:  "999999",
+				},
+			},
+			senario: func(args args) mockRepository {
+
+				mockRepositories := initMockRepository(ctrl)
+
+				redisKeyRatelimitOTP := fmt.Sprintf(models.REDIS_RATELIMIT_OTP, args.req.Uuid)
+				mockRepositories.mockRedis.EXPECT().Get(args.ctx, redisKeyRatelimitOTP).Return("1", nil)
+
+				redisKeyOTP := fmt.Sprintf(models.REDIS_OTP, args.req.Uuid)
+				mockRepositories.mockRedis.EXPECT().Get(args.ctx, redisKeyOTP).Return("200139", nil)
+
+				mockRepositories.mockRedis.EXPECT().Increment(args.ctx, redisKeyRatelimitOTP).Return(int64(3), nil)
+
+				mockRepositories.mockRedis.EXPECT().Expire(args.ctx, redisKeyRatelimitOTP, time.Duration(models.RATELIMIT_OTP_EXPIRE)).Return(true, nil)
+
+				return mockRepositories
+			},
+			want: models.VerifyOtpRatelimitResponse{
+				CommonResponse: response.SetCommonResponse(response.STATUS_ERROR, http.StatusTooManyRequests),
+				Error: &response.ErrorResponse{
+					ErrorMessage: "otp ratelimit exceed",
 				},
 			},
 		},
