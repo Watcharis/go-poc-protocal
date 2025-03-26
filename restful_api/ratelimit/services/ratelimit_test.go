@@ -3,14 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 	"time"
-	"watcharis/go-poc-protocal/pkg/dto"
-	"watcharis/go-poc-protocal/pkg/logger"
 	"watcharis/go-poc-protocal/pkg/response"
-	"watcharis/go-poc-protocal/pkg/trace"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/cache"
 	mockRedis "watcharis/go-poc-protocal/restful_api/ratelimit/repositories/cache/mocks"
@@ -21,29 +17,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-
-	ctx := context.WithValue(context.Background(), "", "")
-
-	tp, err := trace.SetupTracer(ctx, dto.APP_NAME)
-	if err != nil {
-		log.Fatalf("failed to initialize tracer: %v", err)
-	}
-	defer func() {
-		if err := tp.Shutdown(ctx); err != nil {
-			logger.Panic(ctx, err.Error())
-		}
-	}()
-
-	// tracer := otel.Tracer(logger.APP_NAME)
-	// ctx, span := tracer.Start(ctx, logger.PROJECT_RATELIMIT)
-	// defer span.End()
-
-	// Create logger with TraceID and SpanID automatically included
-	logger.InitOtelZapLogger("develop")
-	defer logger.Sync()
-}
 
 func Test_services_VerifyOtpRatelimit(t *testing.T) {
 

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 	"watcharis/go-poc-protocal/pkg/response"
@@ -73,7 +74,7 @@ func Test_services_CreateUserProfile(t *testing.T) {
 
 			},
 			want: models.ProifleResponse{
-				CommonResponse: response.SetCommonResponse(response.STATUS_SUCCESS, 200),
+				CommonResponse: response.SetCommonResponse(response.STATUS_SUCCESS, http.StatusOK),
 			},
 		},
 	}

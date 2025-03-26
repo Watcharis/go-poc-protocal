@@ -4,43 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"watcharis/go-poc-protocal/pkg/dto"
-	"watcharis/go-poc-protocal/pkg/logger"
 	"watcharis/go-poc-protocal/pkg/response"
-	"watcharis/go-poc-protocal/pkg/trace"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 	mockServices "watcharis/go-poc-protocal/restful_api/ratelimit/services/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-
-	ctx := context.WithValue(context.Background(), "", "")
-
-	tp, err := trace.SetupTracer(ctx, dto.APP_NAME)
-	if err != nil {
-		log.Fatalf("failed to initialize tracer: %v", err)
-	}
-	defer func() {
-		if err := tp.Shutdown(ctx); err != nil {
-			logger.Panic(ctx, err.Error())
-		}
-	}()
-
-	// tracer := otel.Tracer(logger.APP_NAME)
-	// ctx, span := tracer.Start(ctx, logger.PROJECT_RATELIMIT)
-	// defer span.End()
-
-	// Create logger with TraceID and SpanID automatically included
-	logger.InitOtelZapLogger("develop")
-	defer logger.Sync()
-}
 
 func Test_restFulAPIHandlers_VerifyOtpRatelimit(t *testing.T) {
 
@@ -103,7 +76,10 @@ func Test_restFulAPIHandlers_VerifyOtpRatelimit(t *testing.T) {
 
 			handler := NewRestFulAPIHandlers(tt.fields.services)
 
-			reqBytes, _ := json.Marshal(tt.args.req)
+			reqBytes, err := json.Marshal(tt.args.req)
+			if err != nil {
+				t.Errorf("failed to marshal request body: %v", err)
+			}
 
 			req := httptest.NewRequestWithContext(tt.args.ctx, http.MethodPost, "/api/v1/verify-otp-ratelimit", bytes.NewReader(reqBytes))
 			req.Header.Set("Content-Type", "application/json")
@@ -115,7 +91,9 @@ func Test_restFulAPIHandlers_VerifyOtpRatelimit(t *testing.T) {
 			expectedResp := tt.want
 
 			var actualResp models.VerifyOtpRatelimitResponse
-			err := json.NewDecoder(rec.Body).Decode(&actualResp)
+			if err := json.NewDecoder(rec.Body).Decode(&actualResp); err != nil {
+				t.Errorf("failed to marshal request body: %v", err)
+			}
 
 			assert.Equal(t, http.StatusOK, rec.Code)
 			assert.NoError(t, err)
