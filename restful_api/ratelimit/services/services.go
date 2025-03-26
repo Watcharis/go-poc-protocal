@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/models"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/cache"
 	"watcharis/go-poc-protocal/restful_api/ratelimit/repositories/db"
@@ -29,4 +30,8 @@ func NewServices(redis cache.RedisRepository,
 		profilesRepository: profilesRepository,
 		otpRepository:      otpRepository,
 	}
+}
+
+var TimeNow = func() time.Time {
+	return time.Now()
 }

@@ -28,7 +28,7 @@ func (s *services) CreateOtp(ctx context.Context, req models.OtpRequest) (models
 	dataOTP := models.OtpDB{
 		UUID:      req.UUID,
 		Otp:       req.Otp,
-		CreatedAt: time.Now(),
+		CreatedAt: TimeNow(),
 	}
 
 	otp, err := s.otpRepository.CreateOtp(ctx, dataOTP)
