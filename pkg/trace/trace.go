@@ -38,6 +38,7 @@ func SetupTracer(ctx context.Context, appName string) (*sdktrace.TracerProvider,
 		sdktrace.WithRemoteParentSampled(sdktrace.AlwaysSample()),
 	)
 
+	// secrure option
 	// exporter, err := stdouttrace.New(
 	// 	stdouttrace.WithPrettyPrint(),
 	// )

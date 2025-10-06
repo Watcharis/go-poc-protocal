@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"log"
+	"time"
 	"watcharis/go-poc-protocal/pkg/dto"
 
 	"github.com/blendle/zapdriver"
@@ -27,11 +28,17 @@ func InitOtelZapLogger(env string) {
 		encoderCfg = zap.NewProductionEncoderConfig()
 		encoderCfg.TimeKey = "timestamp"
 		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		// encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	} else {
 		log.Println("init zap config in Env: " + env)
 		encoderCfg = zap.NewDevelopmentEncoderConfig()
 		encoderCfg.TimeKey = "timestamp"
-		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderCfg.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+			// pae.AppendString(t.Format("2006-01-02 15:04:05.000"))
+			enc.AppendString(t.Format("2006-01-02T15:04:05.000+0000"))
+		}
+		// encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		// encoderCfg.EncodeTime = zapcore.RFC3339TimeEncoder
 	}
 
 	core := zapcore.NewCore(
