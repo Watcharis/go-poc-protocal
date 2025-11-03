@@ -102,6 +102,11 @@ func (s *services) GetUserProfile(ctx context.Context, uuid string) (models.Proi
 
 	logger.Info(ctx, "get user profile success", zap.String("uuid", uuid), zap.Any("profile", profile))
 
+	// testStore := make([]int, 0, 10_000_000)
+	// for i := range 10_000_000 {
+	// 	testStore = append(testStore, i)
+	// }
+
 	return models.ProifleResponse{
 		CommonResponse: response.SetCommonResponse(response.STATUS_SUCCESS, http.StatusOK),
 		Data: &models.ProfileDB{

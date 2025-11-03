@@ -15,7 +15,7 @@ func GenerateUUID() string {
 	return strings.ReplaceAll(u, "-", "")
 }
 
-func ValidateStruct(payload interface{}) error {
+func ValidateStruct(payload any) error {
 	validate := validator.New()
 	err := validate.Struct(payload)
 	if err != nil {
