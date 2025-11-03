@@ -9,3 +9,6 @@ Golang Profilling
 - https://pkg.go.dev/net/http/pprof#pkg-overview
 - https://medium.com/@suryaprakashgond/profiling-in-go-with-pprof-cd375d7661ab
 - https://www.youtube.com/watch?v=nok0aYiGiYA&t=351s
+
+go tool pprof -http=:9001 "http://localhost:8777/debug/pprof/profile"
+go tool pprof -http=:9001 "http://localhost:8777/debug/pprof/heap"
